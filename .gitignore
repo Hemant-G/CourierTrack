@@ -1,0 +1,49 @@
+# Node.js
+# ========================
+# node_modules
+node_modules/
+# .env files
+.env
+# log files
+*.log
+npm-debug.log*
+
+# Yarn
+yarn-error.log
+.pnp/
+.pnp.js
+
+# OS generated files
+.DS_Store
+.vscode/ # VS Code settings (optional, but often ignored)
+
+# Backend Specific (inside backend/ directory)
+# ========================
+backend/node_modules/
+backend/.env # IMPORTANT: Do NOT commit your backend .env file with database credentials!
+backend/npm-debug.log*
+backend/coverage/ # if you run coverage tests
+
+# Frontend Specific (inside frontend/ directory)
+# ========================
+frontend/node_modules/
+frontend/.env 
+frontend/dist/ 
+frontend/build/ 
+frontend/.vite/ 
+frontend/*.log
+frontend/npm-debug.log*
+
+# Editor/IDE Specific
+# ========================
+.vscode/ 
+
+# Thumbnails and system files
+.DS_Store
+Thumbs.db
+
+# Other temporary files
+*.tmp
+*.temp
+*~
+~*
