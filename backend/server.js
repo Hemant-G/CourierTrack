@@ -6,7 +6,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import passport from 'passport';
 import passportConfig from './config/passport.js';
-import userRoutes from './routes/userRoutes.js';
+// Correct import:
+import authRoutes from './routes/authRoutes.js'; // <--- CHANGE THIS LINE
 import packageRoutes from './routes/packageRoutes.js';
 
 const app = express();
@@ -22,11 +23,11 @@ app.get('/', (req, res) => {
     res.send('Courier Tracking App Backend API is running!');
 });
 
-// Use User Routes
-app.use('/api/auth', userRoutes);
+// Correct route usage:
+app.use('/api/auth', authRoutes); // <--- CHANGE THIS LINE (if you renamed the file)
 
 // Package Management Routes
-app.use('/api/packages', packageRoutes); 
+app.use('/api/packages', packageRoutes);
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;

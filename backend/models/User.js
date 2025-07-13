@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs'; // For password hashing
+import bcrypt from 'bcryptjs'; // Keep this import for the matchPassword method
 
 const UserSchema = new mongoose.Schema({
     username: {
@@ -37,25 +37,21 @@ const UserSchema = new mongoose.Schema({
     timestamps: true // Automatically adds createdAt and updatedAt fields
 });
 
-// Mongoose Middleware to hash password before saving
-// 'pre' hook runs before 'save' event
-UserSchema.pre('save', async function (next) {
-    // Only hash the password if it has been modified (or is new)
-    if (!this.isModified('password')) {
-        next();
-    }
+// --- REMOVE THIS ENTIRE SECTION ---
+// UserSchema.pre('save', async function (next) {
+//     if (!this.isModified('password')) {
+//         next();
+//     }
+//     const salt = await bcrypt.genSalt(10);
+//     this.password = await bcrypt.hash(this.password, salt);
+//     next();
+// });
+// --- END REMOVAL ---
 
-    // Generate a salt
-    const salt = await bcrypt.genSalt(10);
-    // Hash the password with the salt
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-});
-
-// Method to compare entered password with hashed password
+// Method to compare entered password with hashed password (This part is correct)
 UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model('User', UserSchema); // Define the model here
-export default User; // Use export default for the model
+const User = mongoose.model('User', UserSchema);
+export default User;

@@ -114,7 +114,7 @@ const RegisterPage = () => {
             >
               <option value="customer">Customer</option>
               <option value="courier">Courier</option>
-              {/* Admin option is not exposed for registration via frontend for security */}
+              <option value="admin">Admin</option>
             </select>
           </div>
           <div className="flex items-center justify-between">
