@@ -37,18 +37,8 @@ const UserSchema = new mongoose.Schema({
     timestamps: true // Automatically adds createdAt and updatedAt fields
 });
 
-// --- REMOVE THIS ENTIRE SECTION ---
-// UserSchema.pre('save', async function (next) {
-//     if (!this.isModified('password')) {
-//         next();
-//     }
-//     const salt = await bcrypt.genSalt(10);
-//     this.password = await bcrypt.hash(this.password, salt);
-//     next();
-// });
-// --- END REMOVAL ---
 
-// Method to compare entered password with hashed password (This part is correct)
+// Method to compare entered password with hashed password
 UserSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
