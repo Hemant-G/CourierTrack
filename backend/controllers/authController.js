@@ -1,49 +1,49 @@
+// backend/controllers/authController.js
 import User from '../models/User.js';
 import pkg from 'jsonwebtoken';
 const { sign } = pkg;
-import asyncHandler from 'express-async-handler'; // Import asyncHandler
-import bcrypt from 'bcryptjs'; // Import bcryptjs
+import asyncHandler from 'express-async-handler';
+import bcrypt from 'bcryptjs';
+import passport from 'passport'; // <--- ADD THIS
 
-// @desc    Register a new user
+// Helper function to generate a JWT token
+const generateToken = (id, role) => {
+    return sign({ id, role }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+    });
+};
+
+// @desc    Register a new user (Keep as is, it's fine)
 // @route   POST /api/auth/register
 // @access  Public
-const registerUser = asyncHandler(async (req, res) => { // Wrap with asyncHandler
+const registerUser = asyncHandler(async (req, res) => {
     const { username, email, password, role } = req.body;
-
-    // --- Validation (Added for robustness) ---
     if (!username || !email || !password || !role) {
-        res.status(400); // Set status before throwing error for errorHandler
+        res.status(400);
         throw new Error('Please enter all fields: username, email, password, role');
     }
-
-    // Check if user exists (by email or username)
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
         res.status(400);
         throw new Error('User with that email or username already exists');
     }
-
-    // --- HASH PASSWORD --- THIS IS CRITICAL ---
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user with hashed password
     const user = await User.create({
         username,
         email,
-        password: hashedPassword, // Use the HASHED password here
+        password: hashedPassword,
         role,
     });
-
     if (user) {
+        // Note: Token for registration response is for immediate client use if desired
+        // The primary auth token will be set by login via cookie
         res.status(201).json({
             _id: user._id,
             username: user.username,
             email: user.email,
             role: user.role,
-            token: sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-                expiresIn: '1h', // Or process.env.JWT_EXPIRE if you use it
-            }),
+            token: generateToken(user._id, user.role), // Still generate for immediate response
         });
     } else {
         res.status(400);
@@ -52,54 +52,43 @@ const registerUser = asyncHandler(async (req, res) => { // Wrap with asyncHandle
 });
 
 
-// @desc    Authenticate user & get token
+// @desc    Authenticate user & get token (Now fully using Passport)
 // @route   POST /api/auth/login
 // @access  Public
-const loginUser = asyncHandler(async (req, res) => { // Wrap with asyncHandler
-    const { identifier, password } = req.body;
+const loginUser = asyncHandler(async (req, res, next) => { // IMPORTANT: Ensure 'next' is here
+    // Passport's local strategy will handle finding user and password comparison
+    passport.authenticate('local', { session: false }, async (err, user, info) => {
+        if (err) {
+            // If there's an internal error during authentication (e.g., DB error), pass it to general error handler
+            return next(err);
+        }
+        if (!user) {
+            // If user is not found or credentials invalid (info.message will contain details)
+            res.status(401); // Unauthorized
+            throw new Error(info ? info.message : 'Invalid credentials');
+        }
 
-    // Validate input
-    if (!identifier || !password) {
-        res.status(400);
-        throw new Error('Please enter identifier (email/username) and password');
-    }
+        // If Passport authenticates successfully, generate JWT
+        const token = generateToken(user._id, user.role);
 
-    let user;
-    // Try to find the user by email first
-    user = await User.findOne({ email: identifier }).select('+password'); // Ensure password is selected for matching
+        // Set HTTP-only cookie
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: false, // Use secure in production
+            sameSite: 'strict', // Protect against CSRF
+            maxAge: 3600000, // 1 hour in milliseconds (adjust as needed)
+        });
 
-    // If not found by email, try to find by username
-    if (!user) {
-        user = await User.findOne({ username: identifier }).select('+password');
-    }
+        // Send user details and token in response (token in body is optional, for client-side state management)
+        res.json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            token: token, // Optionally send in body, the cookie is the primary auth
+        });
 
-    // If still no user found, then credentials are invalid
-    if (!user) {
-        res.status(400);
-        throw new Error('Invalid credentials');
-    }
-
-    // Match password (using the method on the User model)
-    const isMatch = await user.matchPassword(password);
-
-    if (!isMatch) {
-        res.status(400);
-        throw new Error('Invalid credentials');
-    }
-
-    // If credentials are valid, generate token
-    const token = sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-        expiresIn: '1h', // Or process.env.JWT_EXPIRE
-    });
-
-    res.json({
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        token,
-    });
+    })(req, res, next); // Make sure to call authenticate with req, res, next
 });
-
 
 export { registerUser, loginUser };

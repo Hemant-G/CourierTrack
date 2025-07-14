@@ -114,7 +114,6 @@ const RegisterPage = () => {
             >
               <option value="customer">Customer</option>
               <option value="courier">Courier</option>
-              <option value="admin">Admin</option>
             </select>
           </div>
           <div className="flex items-center justify-between">

@@ -1,3 +1,5 @@
+// backend/routes/packageRoutes.js
+
 import express from 'express';
 import {
     createPackage,
@@ -5,24 +7,25 @@ import {
     getPackageById,
     updatePackage,
     deletePackage,
-    getPublicPackageDetails // Import the new function
+    getPublicPackageDetails
 } from '../controllers/packageController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Publicly accessible tracking route (NO 'protect' middleware)
-router.get('/track/:trackingId', getPublicPackageDetails); // <--- New Route
+router.get('/track/:trackingId', getPublicPackageDetails);
 
 // Routes for Admin access
 router.route('/')
-    .post(protect, authorizeRoles('admin'), createPackage)
-    .get(protect, authorizeRoles('admin', 'courier'), getPackages);
+    // CORRECTED: Pass an array ['admin'] to authorizeRoles
+    .post(protect, authorizeRoles(['admin', 'customer']), createPackage) // <--- FIX IS HERE
+    .get(protect, authorizeRoles(['admin', 'courier']), getPackages); // This one looks correct already
 
 // Specific package routes (protected)
 router.route('/:id')
-    .get(protect, getPackageById) // Protected for all authenticated users for now, further logic in controller
-    .put(protect, authorizeRoles('admin', 'courier'), updatePackage)
-    .delete(protect, authorizeRoles('admin'), deletePackage);
+    .get(protect, getPackageById)
+    .put(protect, authorizeRoles(['admin', 'courier']), updatePackage)
+    .delete(protect, authorizeRoles(['admin']), deletePackage);
 
 export default router;

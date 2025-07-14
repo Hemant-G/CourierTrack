@@ -1,28 +1,78 @@
+// backend/config/passport.js
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import User from '../models/User.js'; 
-import 'dotenv/config'
+import { Strategy as LocalStrategy } from 'passport-local'; // <--- ADD THIS
+import User from '../models/User.js';
+import 'dotenv/config';
+import bcrypt from 'bcryptjs'; // <--- ADD THIS
 
-const opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = process.env.JWT_SECRET;
+// ... (existing jwtOpts and JwtStrategy setup) ...
 
+const configurePassport = (passport) => {
+  // JWT Strategy (already done above)
+  const jwtOpts = {};
+  jwtOpts.jwtFromRequest = ExtractJwt.fromExtractors([
+    (req) => {
+      let token = null;
+      if (req && req.cookies) {
+        token = req.cookies.jwt;
+      }
+      return token;
+    },
+  ]);
+  jwtOpts.secretOrKey = process.env.JWT_SECRET;
 
-const passportConfig = (passport) => {
-    passport.use(
-        new JwtStrategy(opts, async (jwt_payload, done) => {
-            try {
-                const user = await User.findById(jwt_payload.id).select('-password');
-                if (user) {
-                    return done(null, user);
-                } else {
-                    return done(null, false);
-                }
-            } catch (err) {
-                console.error(err);
-                return done(err, false);
-            }
-        })
-    );
+  passport.use(
+    new JwtStrategy(jwtOpts, async (jwt_payload, done) => {
+      try {
+        const user = await User.findById(jwt_payload.id).select('-password');
+        if (user) {
+          return done(null, user);
+        } else {
+          return done(null, false);
+        }
+      } catch (err) {
+        console.error(err);
+        return done(err, false);
+      }
+    })
+  );
+
+  // --- ADD LOCAL STRATEGY FOR LOGIN ---
+  passport.use(
+    new LocalStrategy(
+      {
+        usernameField: 'identifier', // This allows using email or username
+        passwordField: 'password',
+      },
+      async (identifier, password, done) => {
+        try {
+          let user;
+          // Try to find the user by email first
+          user = await User.findOne({ email: identifier }).select('+password');
+
+          // If not found by email, try to find by username
+          if (!user) {
+            user = await User.findOne({ username: identifier }).select('+password');
+          }
+
+          if (!user) {
+            return done(null, false, { message: 'Invalid credentials' });
+          }
+
+          // Compare password
+          const isMatch = await user.matchPassword(password); // Assumes User.js has this method
+
+          if (!isMatch) {
+            return done(null, false, { message: 'Invalid credentials' });
+          }
+
+          return done(null, user); // Authentication successful
+        } catch (err) {
+          return done(err);
+        }
+      }
+    )
+  );
 };
 
-export default passportConfig;
+export default configurePassport;

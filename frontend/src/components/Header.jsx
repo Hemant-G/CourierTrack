@@ -1,57 +1,76 @@
+// frontend/src/components/Header.jsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const Header = () => {
-  const { isAuthenticated, user, logout } = useAuth(); // Destructure from useAuth
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate('/login'); // Redirect to login page after logout
+    toast.success('Logged out successfully!');
+    navigate('/login');
   };
 
   return (
-    <header className="bg-gray-800 text-white p-4 shadow-md">
+    <header className="bg-slate-900 text-white p-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold">
-          CourierTracker
-        </Link>
+        <div className="text-2xl font-bold">
+          <Link to={user ? '/dashboard' : '/'}>CourierTracker</Link> {/* Adjust default link after login */}
+        </div>
         <nav>
-          <ul className="flex space-x-4 items-center">
-            <li>
-              <Link to="/" className="hover:text-gray-300">Home</Link>
-            </li>
-            <li>
-              <Link to="/track" className="hover:text-gray-300">Track Package</Link>
-            </li>
-            {/* Conditional rendering based on authentication state */}
-            {!isAuthenticated ? (
+          <ul className="flex space-x-6">
+            {user ? (
               <>
+                {/* Conditional Links based on Role */}
+                {user.role === 'admin' && (
+                  <li>
+                    <Link to="/admin-dashboard" className="hover:text-blue-200 transition-colors duration-200">
+                      Admin Dashboard
+                    </Link>
+                  </li>
+                )}
+                {user.role === 'customer' && (
+                  <li>
+                    <Link to="/customer-dashboard" className="hover:text-blue-200 transition-colors duration-200">
+                      My Packages
+                    </Link>
+                  </li>
+                )}
+                {user.role === 'courier' && (
+                  <li>
+                    <Link to="/courier-dashboard" className="hover:text-blue-200 transition-colors duration-200">
+                      My Deliveries
+                    </Link>
+                  </li>
+                )}
                 <li>
-                  <Link to="/login" className="hover:text-gray-300">Login</Link>
+                  <Link to="/profile" className="hover:text-blue-200 transition-colors duration-200">
+                    Profile
+                  </Link>
                 </li>
                 <li>
-                  <Link to="/register" className="hover:text-gray-300">Register</Link>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md transition-colors duration-200"
+                  >
+                    Logout
+                  </button>
                 </li>
               </>
             ) : (
               <>
-                {user?.role === 'admin' && ( // Use optional chaining for user
-                  <li>
-                    <Link to="/admin-dashboard" className="hover:text-gray-300">Admin Dashboard</Link>
-                  </li>
-                )}
-                {user?.role === 'courier' && (
-                  <li>
-                    <Link to="/courier-dashboard" className="hover:text-gray-300">Courier Dashboard</Link>
-                  </li>
-                )}
                 <li>
-                  <span className="text-sm text-gray-400">Welcome, {user?.username} ({user?.role})</span>
+                  <Link to="/login" className="hover:text-blue-200 transition-colors duration-200">
+                    Login
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={handleLogout} className="hover:text-gray-300 bg-red-600 px-3 py-1 rounded">Logout</button>
+                  <Link to="/register" className="hover:text-blue-200 transition-colors duration-200">
+                    Register
+                  </Link>
                 </li>
               </>
             )}

@@ -1,35 +1,50 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
+// backend/server.js
 import express from 'express';
-// import mongoose from 'mongoose'; // <-- No longer need to import mongoose here if connectDB handles it
-import cors from 'cors';
-import passport from 'passport';
-import passportConfig from './config/passport.js';
-import authRoutes from './routes/authRoutes.js';
-import packageRoutes from './routes/packageRoutes.js';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
+import userRoutes from './routes/userRoutes.js';
+import packageRoutes from './routes/packageRoutes.js';
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import authRoutes from './routes/authRoutes.js'; // This seems redundant if userRoutes has auth
+import cors from 'cors';
+import passport from 'passport'; // <--- ADD THIS
+import configurePassport from './config/passport.js'; // <--- ADD THIS
+
+dotenv.config();
+connectDB();
 
 const app = express();
 
-app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 
-// Passport Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// --- ADD PASSPORT INITIALIZATION HERE ---
 app.use(passport.initialize());
-passportConfig(passport);
+configurePassport(passport); // This will load your JWT strategy
+// ----------------------------------------
+
+// --- CRUCIAL LINES (Reviewing below) ---
+app.use('/api/auth', authRoutes); // This will be reviewed
+app.use('/api/users', userRoutes); // This will be reviewed
+app.use('/api/packages', packageRoutes);
+// -------------------------------------
 
 app.get('/', (req, res) => {
-    res.send('Courier Tracking App Backend API is running!');
+  res.send('API is running...');
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/packages', packageRoutes);
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-connectDB(); 
-
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
