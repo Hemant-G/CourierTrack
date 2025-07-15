@@ -1,6 +1,6 @@
 // frontend/src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router'; // <--- CORRECTED IMPORT
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router'; // Corrected import to react-router-dom
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,16 +19,15 @@ import CourierDashboardPage from './pages/CourierDashboardPage';
 
 import ProtectedRoute from './components/ProtectedRoute'; // Your ProtectedRoute component
 import TrackingPage from './pages/TrackingPage';
+import CreatePackagePage from './pages/CreatePackagePage';
 
 const AppContent = () => {
-  const { user, loading } = useAuth(); // Get user and loading from AuthContext
+  const { user, loading } = useAuth();
 
   if (loading) {
-    // A more visually appealing loader could be used here
     return <div className="flex justify-center items-center h-screen text-xl">Loading application...</div>;
   }
 
-  // Helper function to get the correct dashboard path based on user role
   const getDashboardPath = (role) => {
     switch (role) {
       case 'admin':
@@ -38,7 +37,7 @@ const AppContent = () => {
       case 'courier':
         return '/courier-dashboard';
       default:
-        return '/'; // Fallback for unhandled roles or no role
+        return '/';
     }
   };
 
@@ -50,13 +49,9 @@ const AppContent = () => {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/track" element={<TrackingPage />} />
-          <Route path="/unauthorized" element={<UnauthorizedPage />} /> {/* Page for unauthorized access */}
-          {/* Fallback for undefined routes - keep it at the end */}
-          <Route path="*" element={<NotFoundPage />} />
-
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Login and Register Pages - Redirect if user is already authenticated */}
-          {/* If user is logged in, they are redirected to their respective dashboard based on role */}
           <Route
             path="/login"
             element={user ? <Navigate to={getDashboardPath(user.role)} replace /> : <LoginPage />}
@@ -78,26 +73,29 @@ const AppContent = () => {
             }
           />
 
-          {/* Protected Routes - Specific Dashboards */}
+          {/* Protected Routes */}
 
-          {/* Admin Dashboard */}
-          {/* Wrapped by ProtectedRoute and has a specific path */}
+          {/* Admin Dashboard and Admin-specific routes */}
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
             <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
-            {/* Add other admin-specific nested routes here later, e.g., /admin/users, /admin/packages */}
+            {/* Add other admin-specific nested routes here */}
           </Route>
 
-          {/* Customer Dashboard */}
-          <Route element={<ProtectedRoute allowedRoles={['customer']} />}>
+          {/* Customer Dashboard and Customer-specific routes */}
+          <Route element={<ProtectedRoute allowedRoles={['customer']} />}> {/* <--- IMPORTANT FIX HERE */}
             <Route path="/customer-dashboard" element={<CustomerDashboardPage />} />
-            {/* Add other customer-specific nested routes here later, e.g., /my-packages, /send-package */}
+            <Route path="/create-package" element={<CreatePackagePage />} />
+            {/* Add other customer-specific nested routes here */}
           </Route>
 
-          {/* Courier Dashboard */}
+          {/* Courier Dashboard and Courier-specific routes */}
           <Route element={<ProtectedRoute allowedRoles={['courier']} />}>
             <Route path="/courier-dashboard" element={<CourierDashboardPage />} />
-            {/* Add other courier-specific nested routes here later, e.g., /my-deliveries, /update-status/:id */}
+            {/* Add other courier-specific nested routes here */}
           </Route>
+
+          {/* Fallback for undefined routes - keep it at the end */}
+          <Route path="*" element={<NotFoundPage />} />
 
         </Routes>
       </main>

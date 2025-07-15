@@ -48,16 +48,9 @@ const PackageSchema = new mongoose.Schema({
         ref: 'User',
         default: null,
     },
-    currentLocation: {
-        type: {
-            type: String,
-            enum: ['Point'],
-            default: 'Point',
-        },
-        coordinates: {
-            type: [Number],
-            default: [0, 0],
-        },
+    currentLocation: { // Changed to string
+        type: String,
+        default: 'Unknown Location',
     },
     eta: {
         type: Date,
@@ -70,13 +63,9 @@ const PackageSchema = new mongoose.Schema({
                 type: Date,
                 default: Date.now,
             },
-            location: {
-                type: {
-                    type: String,
-                    enum: ['Point'],
-                    default: 'Point',
-                },
-                coordinates: [Number],
+            location: { // Changed to string
+                type: String,
+                default: 'Unknown Location',
             },
             description: String,
         },
@@ -85,15 +74,15 @@ const PackageSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Create a geospatial index on currentLocation for efficient location-based queries
-PackageSchema.index({ currentLocation: '2dsphere' });
+// Remove the geospatial index as we are no longer using coordinates
+// PackageSchema.index({ currentLocation: '2dsphere' });
 
 // Middleware to add initial status to history when a new package is created
 PackageSchema.pre('save', function (next) {
-    if (this.isNew) { // Only run for new documents
+    if (this.isNew) {
         this.history.push({
             status: this.status,
-            location: this.currentLocation,
+            location: this.currentLocation, // Will now be a string
             description: `Package created with status: ${this.status}`
         });
     }

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import PageWrapper from '../components/PageWrapper';
 import api from '../utils/api'; // Your Axios instance
 import { toast } from 'react-toastify';
-import { format } from 'date-fns'; // For date formatting, install if you don't have: npm install date-fns
+import { format } from 'date-fns'; // For date formatting
 
 const TrackingPage = () => {
   const [trackingId, setTrackingId] = useState('');
@@ -24,8 +24,8 @@ const TrackingPage = () => {
     }
 
     try {
-      // This will call your backend endpoint: GET /api/public/track/:trackingId
-      const response = await api.get(`/packages/track/${trackingId}`); // Make sure your backend has this route!
+      // This will call your backend endpoint: GET /api/packages/track/:trackingId
+      const response = await api.get(`/packages/track/${trackingId}`);
       setPackageData(response.data);
       toast.success('Package found!');
     } catch (err) {
@@ -82,9 +82,9 @@ const TrackingPage = () => {
               </div>
               <div>
                 <strong>Status:</strong> <span className={`font-semibold ${
-                  packageData.status === 'delivered' ? 'text-green-600' :
-                  packageData.status === 'in-transit' ? 'text-blue-600' :
-                  packageData.status === 'pending' ? 'text-yellow-600' :
+                  packageData.status === 'Delivered' ? 'text-green-600' : // Capitalized statuses for consistency
+                  packageData.status === 'In Transit' ? 'text-blue-600' :
+                  packageData.status === 'Pending' ? 'text-yellow-600' :
                   'text-gray-600'
                 }`}>{packageData.status.toUpperCase()}</span>
               </div>
@@ -100,6 +100,11 @@ const TrackingPage = () => {
               <div className="col-span-2">
                 <strong>Delivery Address:</strong> {packageData.deliveryAddress}
               </div>
+              {packageData.currentLocation && ( // Display current location as a string
+                <div className="col-span-2">
+                  <strong>Current Location:</strong> {packageData.currentLocation}
+                </div>
+              )}
               {packageData.eta && (
                 <div className="col-span-2">
                   <strong>Estimated Delivery:</strong> {format(new Date(packageData.eta), 'PPP')}
@@ -117,16 +122,16 @@ const TrackingPage = () => {
                       <div className="flex justify-between items-center text-sm font-semibold text-gray-600">
                         <span>{format(new Date(entry.timestamp), 'PPP p')}</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                          entry.status === 'delivered' ? 'bg-green-200 text-green-800' :
-                          entry.status === 'in-transit' ? 'bg-blue-200 text-blue-800' :
-                          entry.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
+                          entry.status === 'Delivered' ? 'bg-green-200 text-green-800' : // Capitalized statuses for consistency
+                          entry.status === 'In Transit' ? 'bg-blue-200 text-blue-800' :
+                          entry.status === 'Pending' ? 'bg-yellow-200 text-yellow-800' :
                           'bg-gray-200 text-gray-800'
                         }`}>{entry.status.toUpperCase()}</span>
                       </div>
-                      <p className="text-gray-800 mt-2">{entry.note}</p>
-                      {entry.location && entry.location.coordinates && (
+                      <p className="text-gray-800 mt-2">{entry.description || 'Status update.'}</p> {/* Use 'description' if present */}
+                      {entry.location && ( // Display location as a string
                         <p className="text-gray-500 text-sm mt-1">
-                          Location: {entry.location.coordinates[0]}, {entry.location.coordinates[1]}
+                          Location: {entry.location}
                         </p>
                       )}
                     </li>
