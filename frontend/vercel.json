@@ -2,6 +2,6 @@
   "version": 2,
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/(.*)", "destination": "/public" } // Assuming your index.html is directly inside 'public'
+    { "source": "/(.*)", "destination": "/public" } 
   ]
 }
