@@ -15,7 +15,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-slate-900 text-white p-4 shadow-md">
+    <header className="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50 ">
       <div className="container mx-auto flex justify-between items-center">
         <div className="text-2xl font-bold">
           <Link to={user ? '/dashboard' : '/'}>CourierTracker</Link> {/* Adjust default link after login */}

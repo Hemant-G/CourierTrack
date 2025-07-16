@@ -1,13 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // <-- Import useEffect
 import API from '../utils/api'; // Our configured Axios instance
 import { toast } from 'react-toastify';
 import { format } from 'date-fns'; // For better date formatting
+import { useSearchParams } from 'react-router-dom'; // <-- Import useSearchParams
 
 const TrackPackagePage = () => {
-  const [trackingId, setTrackingId] = useState('');
+  const [trackingId, setTrackingId] = useState(''); // This will hold the ID from input or URL
   const [packageData, setPackageData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [searchParams] = useSearchParams(); // Initialize useSearchParams
+
+  // New useEffect to handle initial loading from URL query parameter
+  useEffect(() => {
+    const idFromUrl = searchParams.get('trackingId');
+    if (idFromUrl) {
+      setTrackingId(idFromUrl); // Set the input field with the ID from URL
+      // Immediately fetch package details if ID is found in URL
+      const fetchInitialPackage = async () => {
+        setLoading(true);
+        setPackageData(null);
+        setError(null);
+        try {
+          // Use the internal trackingId state, which is now set from the URL
+          const response = await API.get(`/packages/track/${idFromUrl}`);
+          setPackageData(response.data);
+          toast.success('Package details fetched successfully!');
+        } catch (err) {
+          const errorMessage = err.response?.data?.message || 'Failed to fetch package details. Please check the tracking ID.';
+          setError(errorMessage);
+          toast.error(errorMessage);
+          console.error('Initial tracking error:', err.response || err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchInitialPackage();
+    }
+  }, [searchParams]); // Re-run if query parameters change
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,6 +47,7 @@ const TrackPackagePage = () => {
     setError(null);       // Clear previous errors
 
     try {
+      // Use the trackingId state, which now reflects either URL or user input
       const response = await API.get(`/packages/track/${trackingId}`);
       setPackageData(response.data);
       toast.success('Package details fetched successfully!');
@@ -90,8 +122,8 @@ const TrackPackagePage = () => {
             {packageData.currentLocation && (
               <div>
                 <p className="font-semibold">Current Location:</p>
-                {/* Note: Coordinates are [longitude, latitude] */}
-                <p>Lat: {packageData.currentLocation.coordinates[1].toFixed(4)}, Lon: {packageData.currentLocation.coordinates[0].toFixed(4)}</p>
+                {/* Note: currentLocation is now a string, so no coordinates */}
+                <p>{packageData.currentLocation}</p> {/* Display as string directly */}
               </div>
             )}
             {packageData.eta && (
@@ -110,10 +142,10 @@ const TrackPackagePage = () => {
                   <li key={index} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                     <p className="font-semibold text-gray-800">{entry.status} <span className="text-sm text-gray-500 float-right">{format(new Date(entry.timestamp), 'PPP p')}</span></p>
                     {entry.location && (
-                      <p className="text-sm text-gray-600">Location: Lat: {entry.location.coordinates[1].toFixed(4)}, Lon: {entry.location.coordinates[0].toFixed(4)}</p>
+                      <p className="text-sm text-gray-600">Location: {entry.location}</p> {/* Display as string directly */}
                     )}
-                    {entry.note && (
-                      <p className="text-sm text-gray-600">Note: {entry.note}</p>
+                    {entry.description && ( // Changed from 'note' to 'description' based on schema
+                      <p className="text-sm text-gray-600">Details: {entry.description}</p>
                     )}
                   </li>
                 ))}

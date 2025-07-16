@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router';
+import { useNavigate, Link } from 'react-router'; // Ensure this is 'react-router-dom'
 import { toast } from 'react-toastify';
 
 const RegisterPage = () => {
@@ -16,7 +16,11 @@ const RegisterPage = () => {
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Validation functions
+  // Background image URL for the registration page
+  const bgImageUrl = 'https://images.pexels.com/photos/5025643/pexels-photo-5025643.jpeg'; 
+  // You can use a different URL if you want a unique image for this page
+
+  // Validation functions (unchanged, copied from your provided code)
   const validateUsername = (value) => {
     if (!value) return 'Username is required';
     if (value.length < 3) return 'Username must be at least 3 characters long';
@@ -48,7 +52,7 @@ const RegisterPage = () => {
     return '';
   };
 
-  // Get password strength
+  // Get password strength (unchanged, copied from your provided code)
   const getPasswordStrength = (password) => {
     if (!password) return { strength: 0, label: '', color: '' };
     
@@ -69,7 +73,7 @@ const RegisterPage = () => {
     return { strength: score, label: 'Strong', color: 'bg-green-500' };
   };
 
-  // Handle field changes and validation
+  // Handle field changes and validation (unchanged, copied from your provided code)
   const handleFieldChange = (field, value) => {
     let error = '';
     
@@ -85,7 +89,6 @@ const RegisterPage = () => {
       case 'password':
         setPassword(value);
         error = validatePassword(value);
-        // Also revalidate confirm password if it exists
         if (confirmPassword) {
           setErrors(prev => ({
             ...prev,
@@ -99,6 +102,8 @@ const RegisterPage = () => {
         break;
       case 'role':
         setRole(value);
+        break;
+      default:
         break;
     }
     
@@ -127,14 +132,15 @@ const RegisterPage = () => {
     return !Object.values(newErrors).some(error => error !== '');
   };
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (unchanged)
   React.useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => { // Changed to receive event
+    e.preventDefault(); // Prevent default form submission
     
     // Mark all fields as touched for validation display
     setTouched({
@@ -145,7 +151,7 @@ const RegisterPage = () => {
     });
 
     if (!isFormValid()) {
-      toast.error('Please fix the validation errors before submitting');
+      toast.error('Please fix the validation errors before submitting.');
       return;
     }
 
@@ -163,20 +169,30 @@ const RegisterPage = () => {
   const passwordStrength = getPasswordStrength(password);
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-160px)]">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Register</h2>
-        <div>
+    // Apply background image and color scheme to the main container
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-gray-900 text-white bg-cover bg-center relative"
+      style={{ backgroundImage: `url(${bgImageUrl})` }}
+    >
+      {/* Overlay for better readability of the form */}
+      <div className="absolute inset-0 bg-slate-900 opacity-70"></div>
+
+      {/* Registration Form Container - place it above the overlay with z-index */}
+      <div className="relative z-10 bg-white p-8 rounded-lg shadow-xl w-full max-w-md text-center">
+        <h2 className="text-4xl font-bold text-slate-800 mb-6">Create Your Account</h2>
+        <p className="text-slate-600 mb-8 text-lg">Join us to start tracking your deliveries!</p>
+
+        <form onSubmit={handleSubmit} className="space-y-6"> {/* Changed to form and added onSubmit */}
           {/* Username Field */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 text-left mb-1" htmlFor="username">
               Username
             </label>
             <input
               type="text"
               id="username"
-              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
-                touched.username && errors.username ? 'border-red-500' : ''
+              className={`mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-800 ${
+                touched.username && errors.username ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Choose a username"
               value={username}
@@ -190,15 +206,15 @@ const RegisterPage = () => {
           </div>
 
           {/* Email Field */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 text-left mb-1" htmlFor="email">
               Email
             </label>
             <input
               type="email"
               id="email"
-              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
-                touched.email && errors.email ? 'border-red-500' : ''
+              className={`mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-800 ${
+                touched.email && errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Enter your email"
               value={email}
@@ -212,15 +228,15 @@ const RegisterPage = () => {
           </div>
 
           {/* Password Field */}
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 text-left mb-1" htmlFor="password">
               Password
             </label>
             <input
               type="password"
               id="password"
-              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
-                touched.password && errors.password ? 'border-red-500' : ''
+              className={`mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-800 ${
+                touched.password && errors.password ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="********"
               value={password}
@@ -236,7 +252,7 @@ const RegisterPage = () => {
             {password && (
               <div className="mt-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">Password strength:</span>
+                  <span className="text-slate-600">Password strength:</span> {/* Changed text color */}
                   <span className={`font-medium ${
                     passwordStrength.label === 'Weak' ? 'text-red-600' :
                     passwordStrength.label === 'Fair' ? 'text-yellow-600' :
@@ -257,15 +273,15 @@ const RegisterPage = () => {
           </div>
 
           {/* Confirm Password Field */}
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmPassword">
+          <div> {/* Changed mb-6 to standard div margin */}
+            <label className="block text-sm font-medium text-gray-700 text-left mb-1" htmlFor="confirmPassword">
               Confirm Password
             </label>
             <input
               type="password"
               id="confirmPassword"
-              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
-                touched.confirmPassword && errors.confirmPassword ? 'border-red-500' : ''
+              className={`mt-1 block w-full px-4 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-gray-800 ${
+                touched.confirmPassword && errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="********"
               value={confirmPassword}
@@ -280,12 +296,12 @@ const RegisterPage = () => {
 
           {/* Role Selection */}
           <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
+            <label className="block text-sm font-medium text-gray-700 text-left mb-1" htmlFor="role">
               Register as
             </label>
             <select
               id="role"
-              className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+              className="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm px-4 py-2 text-gray-800 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               value={role}
               onChange={(e) => handleFieldChange('role', e.target.value)}
             >
@@ -297,22 +313,22 @@ const RegisterPage = () => {
           {/* Submit Button */}
           <div className="flex items-center justify-between">
             <button
-              type="button"
-              onClick={handleSubmit}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              type="submit" // Changed type to submit
+              // onClick={handleSubmit} // No need for onClick on button if form has onSubmit
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
               {loading ? 'Registering...' : 'Register'}
             </button>
           </div>
           
-          <p className="text-center text-gray-600 text-sm mt-4">
+          <p className="mt-8 text-md text-slate-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-500 hover:underline">
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 hover:underline transition duration-150 ease-in-out">
               Login here
             </Link>
           </p>
-        </div>
+        </form>
       </div>
     </div>
   );

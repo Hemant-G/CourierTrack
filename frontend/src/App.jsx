@@ -20,6 +20,7 @@ import CourierDashboardPage from './pages/CourierDashboardPage';
 import ProtectedRoute from './components/ProtectedRoute'; // Your ProtectedRoute component
 import TrackingPage from './pages/TrackingPage';
 import CreatePackagePage from './pages/CreatePackagePage';
+import UserProfilePage from './pages/UserProfilePage';
 
 const AppContent = () => {
   const { user, loading } = useAuth();
@@ -49,6 +50,7 @@ const AppContent = () => {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/track" element={<TrackingPage />} />
+                    <Route path="/track-package" element={<TrackingPage />} /> 
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Login and Register Pages - Redirect if user is already authenticated */}
@@ -74,6 +76,11 @@ const AppContent = () => {
           />
 
           {/* Protected Routes */}
+
+          {/* User Profile  */}
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'customer', 'courier']} />}>
+            <Route path="/profile" element={<UserProfilePage />} /> {/* <-- ADD THIS ROUTE */}
+          </Route>
 
           {/* Admin Dashboard and Admin-specific routes */}
           <Route element={<ProtectedRoute allowedRoles={['admin']} />}>

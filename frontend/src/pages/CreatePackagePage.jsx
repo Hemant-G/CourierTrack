@@ -137,7 +137,7 @@ const CreatePackagePage = () => {
 
           <button
             type="submit"
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-center text-lg shadow-md transition duration-150 ease-in-out w-full"
+            className="bg-blue-900 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-center text-lg shadow-md transition duration-150 ease-in-out w-full"
             disabled={loading}
           >
             {loading ? 'Creating Package...' : 'Submit New Package'}

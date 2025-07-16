@@ -30,6 +30,7 @@ const deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
+
 export {
   getUsers,
   deleteUser,
