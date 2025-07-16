@@ -1,4 +1,14 @@
-{ 
-  "version": 2, 
-  "rewrites": [{ "source": "/(.*)", "destination": "/api" }] 
+{
+  "version": 2,
+  "functions": {
+    "server.js": {
+      "runtime": "nodejs22.x" 
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/server.js"
+    }
+  ]
 }
