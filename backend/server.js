@@ -17,7 +17,7 @@ connectDB();
 const app = express();
 
 app.use(cors({
-  origin: 'http://https://courier-tracker-frontend.vercel.app',
+  origin: 'https://courier-tracker-frontend.vercel.app',
   credentials: true,
 }));
 
