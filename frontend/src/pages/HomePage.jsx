@@ -1,7 +1,6 @@
-// frontend/src/pages/HomePage.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router';
-// import Header from '../components/Header'; // Uncomment if you're using this component elsewhere
+import API from '../utils/api'; 
 
 const HomePage = () => {
   const [trackingId, setTrackingId] = useState('');
@@ -23,26 +22,26 @@ const HomePage = () => {
     setTrackingResult(null); // Clear previous results
 
     try {
-      // Assuming your backend is deployed at a base URL (e.g., https://your-backend.vercel.app)
-      // You'll need to replace '/api/packages/track/' with your actual backend URL + path
-      const backendBaseUrl = process.env.NODE_ENV === 'production' 
-                             ? 'https://your-backend-url.vercel.app' // <<-- REPLACE THIS WITH YOUR DEPLOYED BACKEND URL
-                             : 'http://localhost:5000'; // For local development
-
-      const response = await fetch(`${backendBaseUrl}/api/packages/track/${trackingId}`);
+      // Use your API instance for the GET request
+      // The baseURL is already set in your API instance, so you only need the endpoint path
+      const response = await API.get(`/packages/track/${trackingId}`);
       
-      const data = await response.json();
+      // Axios automatically parses JSON, so data is directly available
+      setTrackingResult(response.data);
 
-      if (!response.ok) {
-        // If the response is not 2xx, it's an error from the API
-        setError(data.message || 'Failed to fetch tracking details. Please try again.');
-        return;
-      }
-
-      setTrackingResult(data);
     } catch (err) {
       console.error('Error tracking package:', err);
-      setError('Network error. Could not connect to the tracking service.');
+      // Axios errors often have a .response property for server errors
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message); // Use the message from your backend
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError('Network error. Could not connect to the tracking service.');
+      } else {
+        // Something happened in setting up the request that triggered an error
+        setError('An unexpected error occurred. Please try again.');
+      }
+      setTrackingResult(null); // Ensure no old data is shown on error
     } finally {
       setLoading(false);
     }
@@ -51,7 +50,7 @@ const HomePage = () => {
   return (
     <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center bg-gray-900 text-white bg-cover bg-center relative" style={{ backgroundImage: `url(${heroImageUrl})` }}>
       {/* Hero Section - Centered content */}
-      <div className="flex flex-col items-center justify-center text-center p-8 bg-slate-900/80 bg-opacity-60 rounded-lg shadow-2xl z-10 mx-4 max-w-lg">
+      <div className="flex flex-col items-center justify-center text-center p-8 bg-black bg-opacity-60 rounded-lg shadow-2xl z-10 mx-4 max-w-lg">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-4 animate-fadeIn">
           Track Your Deliveries <span className="text-blue-400">Effortlessly</span>
         </h1>
