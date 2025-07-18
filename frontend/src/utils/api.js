@@ -2,18 +2,19 @@ import axios from 'axios';
 
 const API = axios.create({
     baseURL: import.meta.env.VITE_BACKEND_API_URL,
-    withCredentials: true, 
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Optional: Interceptor to attach token to requests
+// Interceptor to attach token to requests
 API.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+            // *** CRITICAL FIX: Ensure the token from localStorage is trimmed here too! ***
+            config.headers.Authorization = `Bearer ${token.trim()}`;
         }
         return config;
     },

@@ -19,8 +19,8 @@ router.get('/track/:trackingId', getPublicPackageDetails);
 // Routes for Admin access
 router.route('/')
     // CORRECTED: Pass an array ['admin'] to authorizeRoles
-    .post(protect, authorizeRoles(['admin', 'customer']), createPackage) // <--- FIX IS HERE
-    .get(protect, authorizeRoles(['admin', 'courier', 'customer']), getPackages); // This one looks correct already
+    .post(protect, authorizeRoles(['admin', 'customer']), createPackage) 
+    .get(protect, authorizeRoles(['admin', 'courier', 'customer']), getPackages); 
 
 // Specific package routes (protected)
 router.route('/:id')
