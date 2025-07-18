@@ -25,18 +25,13 @@ export const AuthProvider = ({ children }) => {
 
         if (storedToken) {
           // If a token exists, set it on Axios headers immediately
-          API.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-          setToken(storedToken); // Set token state
+          // *** CRITICAL FIX: Trim the token here to ensure no extra whitespace ***
+          API.defaults.headers.common['Authorization'] = `Bearer ${storedToken.trim()}`;
+          setToken(storedToken.trim()); // Set token state
           
           // If user data also exists, parse it and set user state
           if (storedUser) {
             setUser(JSON.parse(storedUser));
-          } else {
-            // Edge case: token exists but user data doesn't.
-            // This might happen if user clears only 'user' from localStorage.
-            // In a real app, you might re-fetch user data here if you had a /auth/me.
-            // Since we don't, we'll just rely on the token for now.
-            // The dashboard will still try to use 'user.role', so make sure login/register always store 'user'.
           }
         }
       } catch (error) {
@@ -58,8 +53,9 @@ export const AuthProvider = ({ children }) => {
   // (e.g., after login/logout, or initial load from localStorage)
   useEffect(() => {
     if (token) {
-      API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      localStorage.setItem('token', token); // Ensure token is stored
+      // *** CRITICAL FIX: Trim the token here again to ensure consistency ***
+      API.defaults.headers.common['Authorization'] = `Bearer ${token.trim()}`;
+      localStorage.setItem('token', token.trim()); // Ensure token is stored
     } else {
       delete API.defaults.headers.common['Authorization'];
       localStorage.removeItem('token'); // Ensure token is removed
@@ -80,7 +76,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true); // Indicate that an authentication process is starting
     try {
       const res = await API.post('/auth/login', { identifier, password });
-      setToken(res.data.token);
+      // *** CRITICAL FIX: Trim the token as soon as you receive it from the API response ***
+      setToken(res.data.token.trim());
       setUser(res.data); // Backend returns user data directly on login
       toast.success('Login successful!');
       return true; // Indicate success
@@ -98,7 +95,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true); // Indicate that an authentication process is starting
     try {
       const res = await API.post('/auth/register', { username, email, password, role });
-      setToken(res.data.token);
+      // *** CRITICAL FIX: Trim the token as soon as you receive it from the API response ***
+      setToken(res.data.token.trim());
       setUser(res.data); // Backend returns user data directly on register
       toast.success('Registration successful! You are now logged in.');
       return true; // Indicate success
