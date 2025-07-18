@@ -1,6 +1,6 @@
 // frontend/src/pages/UserProfilePage.jsx
 import React, { useState, useEffect } from 'react';
-import PageWrapper from '../components/PageWrapper'; // Assuming PageWrapper handles overall layout
+import PageWrapper from '../components/PageWrapper';
 import { useAuth } from '../context/AuthContext';
 
 const UserProfilePage = () => {

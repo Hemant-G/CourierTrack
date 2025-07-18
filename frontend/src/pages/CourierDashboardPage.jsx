@@ -1,4 +1,3 @@
-// frontend/src/pages/CourierDashboardPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import PageWrapper from '../components/PageWrapper';
 import { useAuth } from '../context/AuthContext';
@@ -6,11 +5,10 @@ import api from '../utils/api';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 
-// Optional: If you decide to reintroduce react-icons for better visual consistency
-// import { FaTruck, FaBoxOpen, FaMapMarkerAlt, FaClock, FaCalendarAlt, FaUser, FaEnvelope, FaPaperPlane, FaCheckCircle, FaSpinner } from 'react-icons/fa';
-
 const CourierDashboardPage = () => {
-  const { user } = useAuth();
+  // <<<--- IMPORTANT: Destructure 'loading' from useAuth() ---<<<
+  const { user, loading: authLoading } = useAuth(); 
+
   const [assignedPackages, setAssignedPackages] = useState([]);
   const [availablePackages, setAvailablePackages] = useState([]);
   const [loadingAssigned, setLoadingAssigned] = useState(true);
@@ -20,10 +18,19 @@ const CourierDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('assigned');
 
   const [newStatus, setNewStatus] = useState({});
-  const [newLocationName, setNewLocationName] = useState({});
-  const [newEta, setNewEta] = useState({});
+  const [newLocationName, setNewLocationName] = {};
+  const [newEta, setNewEta] = {};
 
   const fetchPackages = useCallback(async (type) => {
+    // <<<--- IMPORTANT: Add check for authLoading ---<<<
+    if (authLoading) {
+      // If AuthContext is still loading, do nothing yet.
+      // Keep local loading states true to show overall loading.
+      if (type === 'assigned') setLoadingAssigned(true);
+      else if (type === 'available') setLoadingAvailable(true);
+      return;
+    }
+
     if (!user || user.role !== 'courier') {
       setError('Not authorized to view this page.');
       setLoadingAssigned(false);
@@ -34,16 +41,12 @@ const CourierDashboardPage = () => {
     try {
       if (type === 'assigned') {
         setLoadingAssigned(true);
-        // Ensure you're filtering by assigned courier if your API supports it
-        // Example: const response = await api.get(`/packages?assignedCourierId=${user.id}`);
-        // For now, using the original call, adjust if your backend needs courier ID
-        const response = await api.get('/packages'); // Assuming this fetches assigned packages for the current user or all and filters on frontend
-        // Filter on frontend if backend doesn't filter by courier by default
+        const response = await api.get('/packages');
         const filteredPackages = response.data.filter(pkg => pkg.assignedCourier?._id === user.id);
         setAssignedPackages(filteredPackages);
       } else if (type === 'available') {
         setLoadingAvailable(true);
-        const response = await api.get('/packages?assigned=false'); // Fetch unassigned packages
+        const response = await api.get('/packages?assigned=false');
         setAvailablePackages(response.data);
       }
     } catch (err) {
@@ -54,7 +57,8 @@ const CourierDashboardPage = () => {
       if (type === 'assigned') setLoadingAssigned(false);
       else if (type === 'available') setLoadingAvailable(false);
     }
-  }, [user]);
+  // <<<--- IMPORTANT: Add authLoading to dependency array ---<<<
+  }, [user, authLoading]); 
 
   useEffect(() => {
     fetchPackages('assigned');
@@ -120,9 +124,7 @@ const CourierDashboardPage = () => {
   const handleSelfAssign = async (packageId) => {
     setUpdatingPackageId(packageId);
     try {
-      const response = await api.put(`/packages/${packageId}/assign`, { courierId: user.id }); // Assuming an /assign endpoint
-      // Update: If your backend endpoint for assigning is just a PUT to `/packages/:id` with `assignedCourier` field, use that.
-      // E.g., const response = await api.put(`/packages/${packageId}`, { assignedCourier: user.id });
+      const response = await api.put(`/packages/${packageId}`, { assignedCourier: user.id }); // Using your direct update for assignedCourier
       setAvailablePackages(prev => prev.filter(pkg => pkg._id !== packageId));
       setAssignedPackages(prev => [...prev, response.data]);
       toast.success('Package successfully assigned to you! 🎉');
@@ -146,6 +148,7 @@ const CourierDashboardPage = () => {
     'Returned'
   ];
 
+  // <<<--- IMPORTANT: Adjust loading checks in return statement ---<<<
   if (error) {
     return (
       <PageWrapper>
@@ -158,19 +161,25 @@ const CourierDashboardPage = () => {
       </PageWrapper>
     );
   }
-
-  const renderPackageCards = (pkgList, isLoading) => {
-    if (isLoading) {
-      return (
-        <div className="text-center py-10">
-          <p className="text-xl text-blue-600 font-semibold">Loading packages... hang tight! 📦</p>
+  
+  // Show a global loading spinner if AuthContext is still loading or if either package list is loading
+  if (authLoading || loadingAssigned || loadingAvailable) { 
+    return (
+      <PageWrapper>
+        <div className="min-h-[calc(100vh-120px)] flex flex-col justify-center items-center text-gray-800 p-6">
+          <h1 className="text-4xl font-bold mb-4 text-blue-900">Courier Dashboard</h1>
+          <p className="text-lg text-gray-700">Loading your courier dashboard...</p>
           <div className="mt-8">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800 mx-auto"></div>
           </div>
         </div>
-      );
-    }
+      </PageWrapper>
+    );
+  }
 
+  const renderPackageCards = (pkgList, isLoading) => {
+    // No need for isLoading parameter anymore in this function since global loading handles it
+    // The check is now `authLoading || loadingAssigned || loadingAvailable` above
     if (pkgList.length === 0) {
       return (
         <div className="text-center text-blue-800 rounded-lg p-8 max-w-xl mx-auto shadow-md border border-blue-200">
@@ -189,7 +198,7 @@ const CourierDashboardPage = () => {
         {pkgList.map((pkg) => (
           <div key={pkg._id} className="bg-white p-6 rounded-lg shadow-lg border border-blue-100 flex flex-col justify-between transform transition duration-300 hover:scale-105 hover:shadow-xl">
             <div>
-              <h2 className="text-2xl font-bold mb-3 text-blue-700">#<span className="text-blue-500">{pkg.trackingId}</span></h2> {/* Shorten ID */}
+              <h2 className="text-2xl font-bold mb-3 text-blue-700">#<span className="text-blue-500">{pkg.trackingId}</span></h2>
               <div className="text-gray-700 text-sm mb-3 space-y-1">
                 <p>
                   <strong className="text-blue-600">Status:</strong>{' '}
@@ -269,7 +278,7 @@ const CourierDashboardPage = () => {
               )}
             </div>
 
-            <div className="mt-4"> {/* Removed flex-col gap-2 and made it single button */}
+            <div className="mt-4">
               {activeTab === 'available' && (
                 <button
                   onClick={() => handleSelfAssign(pkg._id)}
@@ -303,7 +312,6 @@ const CourierDashboardPage = () => {
           Effortlessly manage your assigned deliveries and find new opportunities to keep things moving.
         </p>
 
-        {/* Tab Navigation */}
         <div className="flex justify-center mb-10 bg-white rounded-lg shadow-md border border-blue-100 p-2">
           <button
             onClick={() => setActiveTab('assigned')}

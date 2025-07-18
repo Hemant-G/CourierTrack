@@ -1,19 +1,25 @@
-import React, { useState, useEffect } from 'react'; // Import useState and useEffect
+import React, { useState, useEffect } from 'react';
 import PageWrapper from '../components/PageWrapper';
-import { Link } from 'react-router'; // Import Link for navigation
-import { useAuth } from '../context/AuthContext'; // Assuming you have AuthContext
-import api from '../utils/api'; // Your configured Axios instance
-import { toast } from 'react-toastify'; // For notifications
-import { format } from 'date-fns'; // For date formatting
+import { Link } from 'react-router'; 
+import { useAuth } from '../context/AuthContext';
+import api from '../utils/api';
+import { toast } from 'react-toastify';
+import { format } from 'date-fns';
 
 const CustomerDashboardPage = () => {
-  const { user } = useAuth(); // Get logged-in user info
+  const { user, loading: authLoading } = useAuth(); // <<<-- Import authLoading here
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCustomerPackages = async () => {
+      // Add a check to wait for AuthContext to finish its loading
+      if (authLoading) { // <<<-- New check
+        setLoading(true); // Keep loading state true while auth is loading
+        return;
+      }
+
       if (!user || user.role !== 'customer') {
         setError('Not authorized to view this page.');
         setLoading(false);
@@ -22,7 +28,6 @@ const CustomerDashboardPage = () => {
 
       try {
         setLoading(true);
-        // The backend `getPackages` controller will filter by sender/recipient email for 'customer' role
         const response = await api.get('/packages');
         setPackages(response.data);
       } catch (err) {
@@ -35,9 +40,10 @@ const CustomerDashboardPage = () => {
     };
 
     fetchCustomerPackages();
-  }, [user]); // Refetch when user changes (e.g., on login/logout)
+  }, [user, authLoading]); // <<<-- Add authLoading to dependency array
 
-  if (loading) {
+  // Adjust overall loading state to reflect both component loading and auth loading
+  if (loading || authLoading) { // <<<-- Check both here
     return (
       <PageWrapper>
         <div className="text-center py-10">
@@ -112,7 +118,7 @@ const CustomerDashboardPage = () => {
                       </p>
                     )}
                     <Link
-                        to={`/track-package?trackingId=${pkg.trackingId}`} // Link to the public tracking page
+                        to={`/track-package?trackingId=${pkg.trackingId}`}
                         className="mt-3 inline-block bg-blue-900 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded text-sm transition duration-150"
                     >
                         View Details
@@ -130,7 +136,7 @@ const CustomerDashboardPage = () => {
               Ready to send something? Start a new shipment request by providing details for your package.
             </p>
             <Link
-              to="/create-package" // Link to the new package creation page
+              to="/create-package"
               className="bg-blue-900 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-center text-lg shadow-md transition duration-150 ease-in-out w-full"
             >
               Request New Shipment ✨
