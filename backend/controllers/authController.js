@@ -9,7 +9,7 @@ import passport from 'passport'; // <--- ADD THIS
 // Helper function to generate a JWT token
 const generateToken = (id, role) => {
     return sign({ id, role }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
+        expiresIn: '7d',
     });
 };
 
@@ -74,9 +74,9 @@ const loginUser = asyncHandler(async (req, res, next) => { // IMPORTANT: Ensure 
         // Set HTTP-only cookie
         res.cookie('jwt', token, {
             httpOnly: true,
-            secure: false, // Use secure in production
+            secure: true, // Use secure in production
             sameSite: 'strict', // Protect against CSRF
-            maxAge: 3600000, // 1 hour in milliseconds (adjust as needed)
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 1 hour in milliseconds (adjust as needed)
         });
 
         // Send user details and token in response (token in body is optional, for client-side state management)
