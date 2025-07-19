@@ -1,22 +1,16 @@
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { Strategy as LocalStrategy } from 'passport-local'; 
+import { Strategy as LocalStrategy } from 'passport-local';
 import User from '../models/User.js';
 import 'dotenv/config';
 
 const configurePassport = (passport) => {
-  // JWT Strategy (already done above)
-  const jwtOpts = {};
-  jwtOpts.jwtFromRequest = ExtractJwt.fromExtractors([
-    (req) => {
-      let token = null;
-      if (req && req.cookies) {
-        token = req.cookies.jwt;
-      }
-      return token;
-    },
-  ]);
-  jwtOpts.secretOrKey = process.env.JWT_SECRET;
+  // ✅ Declare and configure jwtOpts properly inside the function
+  const jwtOpts = {
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // ✅ Extract token from Authorization header
+    secretOrKey: process.env.JWT_SECRET,
+  };
 
+  // ✅ JWT Strategy
   passport.use(
     new JwtStrategy(jwtOpts, async (jwt_payload, done) => {
       try {
@@ -33,20 +27,17 @@ const configurePassport = (passport) => {
     })
   );
 
-  // --- ADD LOCAL STRATEGY FOR LOGIN ---
+  // ✅ Local Strategy
   passport.use(
     new LocalStrategy(
       {
-        usernameField: 'identifier', // This allows using email or username
+        usernameField: 'identifier', // Accept email or username
         passwordField: 'password',
       },
       async (identifier, password, done) => {
         try {
-          let user;
-          // Try to find the user by email first
-          user = await User.findOne({ email: identifier }).select('+password');
+          let user = await User.findOne({ email: identifier }).select('+password');
 
-          // If not found by email, try to find by username
           if (!user) {
             user = await User.findOne({ username: identifier }).select('+password');
           }
@@ -55,14 +46,13 @@ const configurePassport = (passport) => {
             return done(null, false, { message: 'Invalid credentials' });
           }
 
-          // Compare password
-          const isMatch = await user.matchPassword(password); // Assumes User.js has this method
+          const isMatch = await user.matchPassword(password);
 
           if (!isMatch) {
             return done(null, false, { message: 'Invalid credentials' });
           }
 
-          return done(null, user); // Authentication successful
+          return done(null, user);
         } catch (err) {
           return done(err);
         }

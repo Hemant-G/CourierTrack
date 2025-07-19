@@ -20,7 +20,7 @@ const CustomerDashboardPage = () => {
         return;
       }
 
-      if (!user || user.role !== 'customer') {
+      if (!user || user.role != 'customer') {
         setError('Not authorized to view this page.');
         setLoading(false);
         return;
