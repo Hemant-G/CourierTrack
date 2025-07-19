@@ -48,9 +48,9 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center bg-slate-900/80 text-white bg-cover bg-center relative" style={{ backgroundImage: `url(${heroImageUrl})` }}>
+    <div className="min-h-[calc(100vh-120px)] flex flex-col items-center justify-center bg-slate-900 text-white bg-cover bg-center relative" style={{ backgroundImage: `url(${heroImageUrl})` }}>
       {/* Hero Section - Centered content */}
-      <div className="flex flex-col items-center justify-center text-center p-8 bg-black bg-opacity-60 rounded-lg shadow-2xl z-10 mx-4 max-w-lg">
+      <div className="flex flex-col items-center justify-center text-center p-8 bg-slate-900/80 bg-opacity-60 rounded-lg shadow-2xl z-10 mx-4 max-w-lg">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-4 animate-fadeIn">
           Track Your Deliveries <span className="text-blue-400">Effortlessly</span>
         </h1>

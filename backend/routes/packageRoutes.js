@@ -1,5 +1,3 @@
-// backend/routes/packageRoutes.js
-
 import express from 'express';
 import {
     createPackage,
@@ -16,11 +14,12 @@ const router = express.Router();
 // Publicly accessible tracking route (NO 'protect' middleware)
 router.get('/track/:trackingId', getPublicPackageDetails);
 
-// Routes for Admin access
+// Routes for Admin/Customer/Courier access (protected)
 router.route('/')
-    // CORRECTED: Pass an array ['admin'] to authorizeRoles
-    .post(protect, authorizeRoles(['admin', 'customer']), createPackage) 
-    .get(protect, authorizeRoles(['admin', 'courier', 'customer']), getPackages); 
+    // Example: Only admin can create packages. Adjust roles as per your app's logic.
+    .post(protect, authorizeRoles(['admin']), createPackage)
+    // Admin, courier, and customer can get packages (filtered by their role/email in controller)
+    .get(protect, authorizeRoles(['admin', 'courier', 'customer']), getPackages);
 
 // Specific package routes (protected)
 router.route('/:id')

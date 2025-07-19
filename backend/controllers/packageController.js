@@ -68,7 +68,7 @@ const createPackage = async (req, res) => {
 const getPackages = async (req, res) => {
     try {
         let query = {};
-        const { assigned } = req.query; 
+        const { assigned } = req.query; // Extract 'assigned' query parameter
 
         // Determine query based on user role
         if (req.user.role === 'courier') {

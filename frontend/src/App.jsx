@@ -89,7 +89,7 @@ const AppContent = () => {
           </Route>
 
           {/* Customer Dashboard and Customer-specific routes */}
-          <Route element={<ProtectedRoute allowedRoles={['customer']} />}> {/* <--- IMPORTANT FIX HERE */}
+          <Route element={<ProtectedRoute allowedRoles={['customer']} />}> 
             <Route path="/customer-dashboard" element={<CustomerDashboardPage />} />
             <Route path="/create-package" element={<CreatePackagePage />} />
             {/* Add other customer-specific nested routes here */}

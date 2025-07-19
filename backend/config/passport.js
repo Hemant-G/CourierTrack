@@ -1,11 +1,7 @@
-// backend/config/passport.js
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { Strategy as LocalStrategy } from 'passport-local'; // <--- ADD THIS
+import { Strategy as LocalStrategy } from 'passport-local'; 
 import User from '../models/User.js';
 import 'dotenv/config';
-import bcrypt from 'bcryptjs'; // <--- ADD THIS
-
-// ... (existing jwtOpts and JwtStrategy setup) ...
 
 const configurePassport = (passport) => {
   // JWT Strategy (already done above)

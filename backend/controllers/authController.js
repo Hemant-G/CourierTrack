@@ -85,7 +85,7 @@ const loginUser = asyncHandler(async (req, res, next) => { // IMPORTANT: Ensure 
             username: user.username,
             email: user.email,
             role: user.role,
-            token: token, // Optionally send in body, the cookie is the primary auth
+            token: token.trim(), // Optionally send in body, the cookie is the primary auth
         });
 
     })(req, res, next); // Make sure to call authenticate with req, res, next

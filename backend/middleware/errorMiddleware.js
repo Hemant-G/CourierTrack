@@ -26,7 +26,7 @@ const errorHandler = (err, req, res, next) => {
     message: message,
     // In production, we don't want to send the stack trace for security reasons.
     // In development, it's useful for debugging.
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+    stack: null,
   });
 };
 

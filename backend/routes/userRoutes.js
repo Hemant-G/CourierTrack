@@ -1,26 +1,18 @@
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/authController.js';
-import { getUsers, deleteUser } from '../controllers/userController.js'; // <--- THIS LINE IS CRUCIAL
+import { getUsers, deleteUser } from '../controllers/userController.js';
 import { protect, authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-
 router.get(
-  '/', // This is GET /api/users
+  '/', // This will correctly be GET /api/users
   protect,
-  (req, res, next) => {
-      console.log("Authenticated User Object:", req.user); // <-- THIS IS THE LINE I NEED OUTPUT FROM
-      next();
-  },
-  authorizeRoles(['admin']), // Make sure 'admin' is lowercase here
+  authorizeRoles(['admin']),
   getUsers
 );
 
 router.delete(
-  '/:id',
+  '/:id', // This will correctly be DELETE /api/users/:id
   protect,
   authorizeRoles(['admin']),
   deleteUser

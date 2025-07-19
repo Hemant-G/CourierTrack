@@ -13,8 +13,8 @@ API.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
-            // *** CRITICAL FIX: Ensure the token from localStorage is trimmed here too! ***
-            config.headers.Authorization = `Bearer ${token.trim()}`;
+            // Ensure this line is EXACTLY as below:
+            config.headers.Authorization = `Bearer ${token.trim()}`; // <--- CRITICAL
         }
         return config;
     },
